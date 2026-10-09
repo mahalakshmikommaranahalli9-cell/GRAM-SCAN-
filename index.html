@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRAM-SCAN</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f7f2;color:#1f2937;padding-bottom:40px}
+header{background:linear-gradient(135deg,#14532d,#16a34a);color:white;padding:28px 20px;text-align:center}
+header h1{font-size:30px;margin-bottom:8px} header p{opacity:.9}
+.container{max-width:700px;margin:auto;padding:18px}
+.dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.card{background:white;border-radius:14px;padding:18px 8px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.card strong{display:block;font-size:25px;color:#15803d}.card span{font-size:12px}
+.form-box{background:white;padding:20px;border-radius:16px;box-shadow:0 3px 12px rgba(0,0,0,.08);margin-bottom:22px}
+h2{margin-bottom:16px;color:#14532d}
+label{display:block;margin-top:13px;margin-bottom:6px;font-weight:bold;font-size:14px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:9px;font-size:15px}
+textarea{min-height:90px;resize:vertical}
+button{width:100%;border:none;padding:13px;border-radius:9px;margin-top:15px;font-size:15px;font-weight:bold}
+.save-btn{background:#15803d;color:white}.clear-btn{background:#fee2e2;color:#991b1b}
+.problem{background:white;border-radius:14px;padding:17px;margin-bottom:12px;box-shadow:0 3px 10px rgba(0,0,0,.07)}
+.problem h3{color:#14532d;margin-bottom:8px}.problem p{margin:5px 0;font-size:14px}
+.priority{display:inline-block;padding:5px 9px;border-radius:20px;font-size:12px;font-weight:bold;margin-top:8px}
+.High{background:#fee2e2;color:#b91c1c}.Medium{background:#fef3c7;color:#92400e}.Low{background:#dcfce7;color:#166534}
+.delete-btn{background:#f3f4f6;color:#991b1b;margin-top:10px}.empty{text-align:center;padding:30px;color:#6b7280}
+footer{text-align:center;color:#6b7280;font-size:12px;margin-top:25px}
+</style>
+</head>
+<body>
+<header>
+    <h1>🌾 GRAM-SCAN</h1>
+    <p>Offline Village Problem Recorder</p>
+    <div style="margin-top:14px;font-size:14px;">
+        Created & Developed by
+        <strong style="font-size:16px;">Mahalakshmi Kommaranahalli</strong>
+    </div>
+</header>
+<div class="container">
+<div class="dashboard">
+<div class="card"><strong id="total">0</strong><span>Total</span></div>
+<div class="card"><strong id="high">0</strong><span>High Priority</span></div>
+<div class="card"><strong id="today">0</strong><span>Today</span></div>
+</div>
+<div class="form-box">
+<h2>➕ Record Problem</h2>
+<label>Problem Title</label>
+<input id="title" placeholder="Example: Drinking water shortage">
+<label>Category</label>
+<select id="category">
+<option>Water</option><option>Farming</option><option>Electricity</option>
+<option>Transport</option><option>Healthcare</option><option>Education</option>
+<option>Business</option><option>Waste Management</option><option>Communication</option><option>Other</option>
+</select>
+<label>Who is affected?</label>
+<input id="affected" placeholder="Example: Farmers / Students / Families">
+<label>Problem Description</label>
+<textarea id="description" placeholder="Describe what you observed..."></textarea>
+<label>Priority</label>
+<select id="priority"><option>High</option><option>Medium</option><option>Low</option></select>
+<button class="save-btn" onclick="saveProblem()">💾 Save Problem</button>
+</div>
+<h2>📋 Recorded Problems</h2>
+<div id="problemList"></div>
+<button class="clear-btn" onclick="clearAll()">🗑️ Delete All Records</button>
+<footer>
+    GRAM-SCAN v1 • Offline First • Built for Village Innovation<br><br>
+    Built by <b>Mahalakshmi Kommaranahalli</b><br>
+    <a href="https://github.com/mahalakshmikommaranahalli9-cell/"
+       target="_blank"
+       rel="noopener"
+       style="color:#15803d;font-weight:bold;text-decoration:none;">
+       💻 My GitHub
+    </a>
+</footer>
+</div>
+<script>
+let problems=JSON.parse(localStorage.getItem("gramScanProblems"))||[];
+function saveProblem(){
+const title=document.getElementById("title").value.trim(),category=document.getElementById("category").value,
+affected=document.getElementById("affected").value.trim(),description=document.getElementById("description").value.trim(),
+priority=document.getElementById("priority").value;
+if(!title||!description){alert("Please enter the problem title and description.");return}
+problems.unshift({id:Date.now(),title,category,affected,description,priority,date:new Date().toLocaleDateString()});
+localStorage.setItem("gramScanProblems",JSON.stringify(problems));
+document.getElementById("title").value="";document.getElementById("affected").value="";document.getElementById("description").value="";
+displayProblems();alert("✅ Problem saved offline!");
+}
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+function displayProblems(){
+const list=document.getElementById("problemList");list.innerHTML="";
+if(!problems.length){list.innerHTML='<div class="empty">No problems recorded yet.<br>Start observing your village 🌾</div>'}
+else problems.forEach(p=>{list.innerHTML+=`<div class="problem"><h3>${esc(p.title)}</h3><p><b>Category:</b> ${esc(p.category)}</p><p><b>Affected:</b> ${esc(p.affected||"Not specified")}</p><p><b>Description:</b> ${esc(p.description)}</p><p><b>Date:</b> ${p.date}</p><span class="priority ${p.priority}">${p.priority} Priority</span><button class="delete-btn" onclick="deleteProblem(${p.id})">Delete</button></div>`});
+updateDashboard();
+}
+function deleteProblem(id){problems=problems.filter(p=>p.id!==id);localStorage.setItem("gramScanProblems",JSON.stringify(problems));displayProblems()}
+function clearAll(){if(problems.length&&confirm("Delete all recorded problems?")){problems=[];localStorage.removeItem("gramScanProblems");displayProblems()}}
+function updateDashboard(){document.getElementById("total").textContent=problems.length;document.getElementById("high").textContent=problems.filter(p=>p.priority==="High").length;document.getElementById("today").textContent=problems.filter(p=>p.date===new Date().toLocaleDateString()).length}
+displayProblems();
+</script>
+</body>
+</html>
